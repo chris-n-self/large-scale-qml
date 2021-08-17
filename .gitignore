@@ -1,0 +1,42 @@
+
+# ignore log files
+*.log
+
+# exclude local pip files
+*.egg-info*
+
+# exclude mac directory files
+*.DS_Store
+
+# do not include any of the jupyter checkpoints
+*.ipynb_checkpoints*
+
+# ignore results directories
+*/results/*
+# ignore tmp directories
+*/tmp/*
+
+# do not include data files in the repository
+*.p
+*.json
+*.csv
+*.tsv
+*.jbdmp 
+*.h5
+*.db
+*.joblib
+# xyz internal files
+*.clpkl
+*.xyz*
+
+# do not include compiled python code
+*.pyc
+
+# do not include any pdfs or eps
+*.pdf
+*.eps
+
+# do not include image files or gifs
+*.png
+*.jpg
+*.gif

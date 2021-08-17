@@ -1,0 +1,79 @@
+name: large-scale-qml
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8.*
+  - pip
+  - pylint
+  - flake8
+  - matplotlib
+  - seaborn
+  - pytest
+  - jupyterlab
+  - nodejs
+  - ipywidgets
+  # the following are xyzpy deps
+  - joblib
+  - xarray
+  - bokeh
+  - tqdm
+  - dask
+  - h5netcdf
+  # the following are qiskit deps
+  - numpy <=1.20.1,>=1.17
+  - dill
+  - jsonschema
+  - ply
+  - psutil
+  - python-constraint
+  - python-dateutil
+  - scipy <=1.6.1,>=1.4
+  - sympy <=1.7.1,>=1.3
+  - nest-asyncio
+  - requests
+  - urllib3
+  - websockets
+  - fastdtw
+  - pandas <=1.2.3
+  - h5py <=3.1.0
+  - quandl
+  - scikit-learn <=0.24.1,>=0.20.0
+  - pybind11
+  - lxml
+  - ntlm-auth
+  - pylatexenc
+  # the following are pytket deps
+  - lark-parser
+  - networkx
+  - jinja2 ~=2.11
+  - types-jinja2
+  # - graphviz (does not register with pytket if installed here)
+  # the following are quimb deps
+  - numba
+  - cytoolz
+  - opt_einsum
+  - autoray
+  - networkx
+  - coverage
+  - diskcache
+  # - jax
+  - autograd
+  # - pytorch
+  # - torchvision
+  # the following are qcoptim deps
+  #   -> GPy
+  - cython >=0.29
+  - six
+  - paramz >=0.9.0
+  #   -> openfermion
+  # - deprecation
+  # - nbformat
+  #     -> cirq
+  # - google-api-core
+  # - protobuf ~=3.13.0
+  # - sortedcontainers
+  # - typing-extensions
+
+# changes from base:
+#  -> python downgraded to 3.8.* to match pypi version of GPy
