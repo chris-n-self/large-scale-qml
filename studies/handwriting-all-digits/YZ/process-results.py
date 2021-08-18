@@ -4,6 +4,7 @@ Gram matrix for the data
 """
 
 import os
+import joblib
 
 import numpy as np
 
@@ -26,7 +27,7 @@ if __name__ == '__main__':
     SOURCE = 'raw'  # no measurement error mitigation
     # SOURCE = 'meas_err_mit'  # measurement error mitigation
 
-    FILENAME = (
+    LOAD_FILENAME = (
         '/'.join([
             'results',
             'unprocessed',
@@ -38,7 +39,7 @@ if __name__ == '__main__':
     # load data
     loaded_results = []
     loaded_results += _load_data(
-        FILENAME, 0, N_DATA,
+        LOAD_FILENAME, 0, N_DATA,
     )
 
     # process cross-fidelity
@@ -61,4 +62,21 @@ if __name__ == '__main__':
             'GramMatrix'+'-'+JOB_FILENAME+'.csv',
         ]),
         crossfid_gram, delimiter=',',
+    )
+
+    # expose X and y data vectors for simplicity
+    X_y_vars = joblib.load(LOAD_FILENAME+'/X_y_vars.joblib')
+    np.savetxt(
+        '/'.join([
+            _directory,
+            'X'+'-'+JOB_FILENAME+'.csv',
+        ]),
+        X_y_vars['X_all'][:N_DATA], delimiter=',',
+    )
+    np.savetxt(
+        '/'.join([
+            _directory,
+            'y'+'-'+JOB_FILENAME+'.csv',
+        ]),
+        X_y_vars['y_all'][:N_DATA], delimiter=',',
     )

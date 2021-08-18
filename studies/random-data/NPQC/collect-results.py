@@ -43,6 +43,10 @@ logging.basicConfig(filename=JOB_TRACKING_NAME+'.log', level=logging.DEBUG,)
 
 if __name__ == '__main__':
 
+    # set these to select slice of dataset
+    DATA_SLICE_START = None
+    DATA_SLICE_END = None
+
     _msg = (
         'backend_name='+BACKEND_NAME
     )
@@ -91,8 +95,10 @@ if __name__ == '__main__':
         simulate_ibmq=0,
         noise_model=None,
         seed_simulator=None,
-        data_vars_dump_name='tmp/data_vars/'+JOB_FILENAME+'-'+_time_now_str,
+        data_vars_dump_name=FILENAME+'/'+'X_y_vars',
         circuit_dump_name='tmp/circuits/'+JOB_FILENAME+'-'+_time_now_str,
         data_batch_size=DATA_BATCH_SIZE,
+        data_slice_start=DATA_SLICE_START,
+        data_slice_end=DATA_SLICE_END,
         n_repeat=N_REPEAT,
     )

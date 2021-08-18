@@ -29,10 +29,6 @@ HUB = 'ibm-q'
 GROUP = 'open'
 PROJECT = 'main'
 
-# set these to select slice of dataset
-DATA_SLICE_START = None
-DATA_SLICE_END = None
-
 # used to name log files
 JOB_TAG = 'allhandwriting_NPQC'
 

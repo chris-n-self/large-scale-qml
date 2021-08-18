@@ -630,7 +630,14 @@ def get_ibmq_crossfid_results(
         if data_vars_dump_name is not None:
             _dump_output(
                 data_vars_dump_name,
-                {'X_data': X_data, }
+                {
+                    'X_train': None,
+                    'y_train': None,
+                    'X_test': None,
+                    'y_test': None,
+                    'X_all': X_data,
+                    'y_all': np.array([0 for _ in range(len(X_data))]),
+                }
             )
 
     else:

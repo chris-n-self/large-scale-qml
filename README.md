@@ -1,5 +1,7 @@
 
-Code to accompany "Large-scale quantum machine learning" (https://arxiv.org/abs/2108.01039). 
+Code to accompany "Large-scale quantum machine learning" by Tobias Haug, Chris N. Self, M. S. Kim (arxiv:2108.01039) https://arxiv.org/abs/2108.01039
+
+To experiment without re-running any circuits on IBM Quantum hardware, download the data from https://doi.org/10.5281/zenodo.5211695
 
 ## Setup
 
@@ -25,7 +27,13 @@ In the 'studies' directory are the two examples used in the paper: a random data
 
 Execution is broken into several steps -- first collecting the measurment results from an IBMQ backend or simulator, then (optionally) applying measurement error mitigation to these results, next processing the measurement results to obtain the Gram matrix, and finally fitting the support vector machine classifier using the Gram matrix. These different tasks are carried out by different scripts and all of the intermediate data is saved to disk. 
 
-Each job folder, e.g. 'handwriting-all-digits/NPQC', contains the scripts: 'collect-results.py', 'apply_meas_error_mit.py' and 'process-results.py' (explained below) as well as a file 'JOB_SPECIFICATION.py'. The job specification file sets the values of variables used in an execution run, each of the other scripts will import the variables they need from that file. The variables defined in 'JOB_SPECIFICATION.py' mostly relate to the function `largescaleqml.calculations_qpu.get_ibmq_crossfid_results` and their meaning is explained in the docstring of that function (reproduced at the bottom of this page).
+Each job folder, e.g. 'handwriting-all-digits/NPQC', contains the scripts: 'collect-results.py', 'apply_meas_error_mit.py' and 'process-results.py' as well as 'JOB_SPECIFICATION.py'.
+
+### 0. Setting run parameters `JOB_SPECIFICATION.py`
+
+The job specification file sets the values of variables used in an execution run, each of the other scripts will import the variables they need from that file. The overall idea is that all arguments are fixed in 'JOB_SPECIFICATION.py', then each script is executed in sequence to produce the final output.
+
+The variables defined in 'JOB_SPECIFICATION.py' mostly relate to the function `largescaleqml.calculations_qpu.get_ibmq_crossfid_results` and their meaning is explained in the docstring of that function (reproduced at the bottom of this page).
 
 In addition to setting the execution variables, we also define how output files are named in 'JOB_SPECIFICATION.py'. For example,
 ```python
@@ -42,27 +50,29 @@ JOB_FILENAME = (
 ```
 combines several of the execution variables into a readable output name. If we wanted to additionally experiment with varying other variables, e.g. `CROSSFID_RANDOM_SEED` we could add that variable into this output name.
 
-The overall idea is that all arguments are fixed in 'JOB_SPECIFICATION.py', each script is executed in sequence to produce the final output, then 'JOB_SPECIFICATION.py' is changed and the whole process is repeated.
-
 ### 1. Collecting measurement results `collect-results.py`
 
 This script executes the encoding circuits and carries out the randomised measurements for each data item on the qiskit backend. 
 
-The qiskit measurement results are saved in a subdirectory 'results/unprocessed/raw' (which will be created inside the directory if it does not exist). Inside 'raw' a folder will be created for the run using `JOB_FILENAME` imported from 'JOB_SPECIFICATION.py'. The measurement results of each data point will be pickled and saved in a separate file, e.g. 'data0.joblib'.
+The qiskit measurement results are saved in a subdirectory 'results/unprocessed/raw' (which will be created inside the directory if it does not exist). Inside 'raw' a folder will be created for the run using `JOB_FILENAME` imported from 'JOB_SPECIFICATION.py'. The measurement results of each data point are pickled and saved in a separate file, e.g. 'data0.joblib'. Additionally, the data variables are saved in a file called 'X_y_vars.joblib'.
 
-This step will also generate a number of temporary files inside the 'tmp' directory including pickled copies of the circuits that were executed.
+The script has two additional variables `DATA_SLICE_START` and `DATA_SLICE_END`, these can be set to collect measurement results only for a slice of the data. Their main purpose is to allow restarting of data collection if a job crashes part way through.
 
 ### 2. (Optional) Applying measurement error mitigation `apply_meas_error_mit.py`
 
-This script can be run to apply measurement error mitigation to a previously collected set of results. The script will look for the un-mitigated results in the folder 'results/unprocessed/raw/JOB_FILENAME', where `JOB_FILENAME` is imported from 'JOB_SPECIFICATION.py'. When mitigation is applied a copy of the `JOB_FILENAME` folder is created in 'results/unprocessed/meas_err_mit' with the mitigated results files.
+This script can be run to apply measurement error mitigation to a previously collected set of results. 
 
-The measurement error mitigation applied is qiskit's [tensored mitigation](https://qiskit.org/documentation/stubs/qiskit.ignis.mitigation.TensoredMeasFitter.html) using a single qubit tensored noise model. This type of measurement error mitigation is very cheap and the calibration circuits are remeasured with every circuit execution batch.
+The script will look for the un-mitigated results in the folder 'results/unprocessed/raw/JOB_FILENAME', where `JOB_FILENAME` is imported from 'JOB_SPECIFICATION.py'. When mitigation is applied a copy of the `JOB_FILENAME` folder is created in 'results/unprocessed/meas_err_mit' with the mitigated results files.
+
+The measurement error mitigation applied is qiskit's [tensored mitigation](https://qiskit.org/documentation/stubs/qiskit.ignis.mitigation.TensoredMeasFitter.html) using a single qubit tensored noise model. This type of measurement error mitigation is very cheap and the calibration circuits are re-measured with every circuit execution batch.
 
 ### 3. Process results into Gram matrix `process-results.py`
 
 This script processes the randomised measurement results to compute the Gram matrix. This is the unmitigated Gram matrix, Eqn(6) of the paper not Eqn(7). 
 
-This script has two additional variables `N_DATA` that sets the number of data items, and `SOURCE` that toggles between no measurement error mitigation `SOURCE='raw'` and with measurement error mitigation `SOURCE = 'meas_err_mit'`.
+This script has two additional variables `N_DATA` that sets the number of data items, and `SOURCE` that toggles between no measurement error mitigation `SOURCE='raw'` and with measurement error mitigation `SOURCE='meas_err_mit'`. `N_DATA` can be set smaller than the size of the dataset, in which case the script will look for measurement results files 'data0.joblib' up to 'data[N_DATA].joblib' (Slices of the data that do not start at 'data0.joblib' are not currently supported.)
+
+The Gram matrix is saved as a csv in 'results/processed/SOURCE/JOB_FILENAME', where `JOB_FILENAME` is imported from 'JOB_SPECIFICATION.py'. The data X and y are also saved in csv form. If `N_DATA` is smaller than the size of the full dataset X and y will be sliced to match this.
 
 ## Additional notes
 
@@ -70,13 +80,13 @@ This script has two additional variables `N_DATA` that sets the number of data i
 
 Circuits are broken into batches for submission to IBM Quantum. The different measurement circuits for each data point are never separated, so the unit of batching is data points. The variable `DATA_BATCH_SIZE` in 'JOB_SPECIFICATION.py' controls how many data points are included into each batch. 
 
-It is recommended to ensure that the batch size is small enough that a single batch contains less circuits than the backend's maximum circuit count. If this is not the case everything will still work correctly (since qiskit's QuantumInstance class is being used as an internal executor), however measurement error mitigation calibration circuits are only inserted once into each batch.
+We recommend ensuring that the batch size is small enough so that a single batch contains less circuits than the backend's maximum circuit count. If this is not the case everything will still work correctly (since qiskit's QuantumInstance class is being used as an internal executor), however measurement error mitigation calibration circuits are only inserted once into each batch.
 
 ### Logging and temporary files
 
 The 'collect-results.py' script generates log files using python's logging package at debug level. Both qiskit and the `largescaleqml` package in this repository print logging information to this file.
 
-Additionally, 'collect-results.py' generates a number of temporary files that can be inspected afterwards. These go into e.g. 'handwriting-all-digits/NPQC/tmp' and are named using `JOB_FILENAME`, imported from 'JOB_SPECIFICATION.py', and the date & time. These include the exact circuits that were executed on the backend ('circuits' subdirectory), the data variables ('data_vars') and the logical to physical transpiler mapping ('transpiles').
+Additionally, 'collect-results.py' generates a number of temporary files that can be inspected afterwards. These go into e.g. 'handwriting-all-digits/NPQC/tmp' and are named using `JOB_FILENAME`, imported from 'JOB_SPECIFICATION.py', and the date & time. These include the exact circuits that were executed on the backend ('circuits' subdirectory) and the logical to physical transpiler mapping ('transpiles').
 
 ### `largescaleqml.calculations_qpu.get_ibmq_crossfid_results` docstring
 

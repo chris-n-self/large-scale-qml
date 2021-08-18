@@ -33,6 +33,44 @@ def _dump_output(name, output):
 #
 
 
+def _apply_measurement_error_mitigation(
+    job_filename,
+    raw_directory,
+    mem_directory,
+):
+    """ """
+    # get list of raw files to process
+    files = _find_results_files(
+        job_filename, raw_directory, mem_directory,
+    )
+    # (check all unique)
+    assert len(files) == len(set(files))
+
+    if len(files) > 0:
+        print('found '+f'{len(files)}'+' files, e.g. '+f'{files[0]}')
+
+        # apply measurement error mitigation
+        for file in tqdm(files, desc='applying m.e.m.'):
+            _process_file(
+                file,
+                job_filename, raw_directory, mem_directory,
+            )
+
+    else:
+        print('found '+f'{len(files)}'+' files')
+
+    # copy X and y variables file
+    X_y_vars = joblib.load(
+        '/'.join([raw_directory, job_filename, 'X_y_vars.joblib'])
+    )
+    joblib.dump(
+        X_y_vars,
+        '/'.join([mem_directory, job_filename, 'X_y_vars.joblib']),
+        compress=True,
+    )
+    
+
+
 def _find_results_files(
     search_sub_directory,
     raw_directory,
